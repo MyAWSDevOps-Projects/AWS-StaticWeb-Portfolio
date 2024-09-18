@@ -1,0 +1,30 @@
+name: Deploy to S3
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up AWS CLI
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-1  # Replace with your actual region
+
+    - name: Sync files to S3
+      run: |
+        aws s3 sync . s3://mywebpagee --delete --exclude ".git/*" --exclude "README.md" --cache-control "max-age=3600" || exit 1
+
+    - name: Deployment notification
+      if: success()
+      run: echo "Deployment successful!"
