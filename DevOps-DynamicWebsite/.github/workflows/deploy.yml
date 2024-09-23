@@ -10,10 +10,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4 
+        uses: actions/checkout@v3 
 
       - name: Configure AWS credentials from GitHub Secrets
-        uses: aws-actions/configure-aws-credentials@v4  
+        uses: aws-actions/configure-aws-credentials@v2  
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -22,11 +22,16 @@ jobs:
       - name: Log in to Docker Hub
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
-      - name: Build and push Docker image
+      - name: Build and push Docker image to ECR
+        env:
+          ECR_REPOSITORY_URI: ${{ secrets.ECR_REPOSITORY_URI }}
         run: |
+          # Build Docker image
           docker build -t devops-dynamic-website .
-          docker tag devops-dynamic-website:latest <your-ecr-repository-url>:latest
-          docker push <your-ecr-repository-url>:latest
+
+          docker tag devops-dynamic-website:latest 075972749822.dkr.ecr.us-east-1.amazonaws.com/devops-dynamic-website:latest
+
+          docker push 075972749822.dkr.ecr.us-east-1.amazonaws.com/devops-dynamic-website:latest
 
       - name: Deploy with AWS CloudFormation
         run: |
